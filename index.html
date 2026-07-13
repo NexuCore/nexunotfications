@@ -540,6 +540,26 @@
       box-shadow: 0 8px 50px rgba(0,0,0,.7);
       animation: arabEggPulse 2.4s ease-in-out infinite;
     }
+
+    /* ── OMNI MAN CORNER EASTER EGG ── */
+    #omniEgg {
+      display: none; position: fixed; bottom: 18px; right: 18px; z-index: 950;
+      cursor: pointer;
+      animation: omniPop 0.35s ease both;
+    }
+    #omniEgg.show { display: block; }
+    #omniEgg img {
+      width: 110px; height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.5);
+      transition: transform 0.15s ease;
+    }
+    #omniEgg:hover img { transform: scale(1.06); }
+    #omniEgg:active img { transform: scale(0.94); }
+    @keyframes omniPop {
+      from { transform: scale(0.5); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
     @keyframes arabEggPulse {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.015); }
@@ -682,6 +702,11 @@
     </span>
   </div>
   <audio id="arabEggAudio" src="https://nexucore.github.io/Synax/assets/secret1.wav" preload="auto"></audio>
+</div>
+
+<!-- OMNI MAN CORNER EASTER EGG -->
+<div id="omniEgg" onclick="playOmniEgg()">
+  <img src="https://media.tenor.com/1ZMB6sBf5JAAAAAe/are-you-sure-omni-man.png" alt="Are you sure?"/>
 </div>
 
 <!-- LIGHTBOX -->
@@ -928,6 +953,22 @@ function dismissArabEgg() {
   }, 1200); // matches the 1.2s CSS fade
 }
 
+// ── EASTER EGG: "omni man" / "are you sure" ─────────────────────────────────
+const OMNI_AUDIO_SRC = 'https://nexucore.github.io/Synax/assets/secret2.mp3';
+function isOmniQuery(q) {
+  const s = q.trim().toLowerCase();
+  return /\bomni\s?man\b/.test(s) || /\bare you sure\b/.test(s);
+}
+function triggerOmniEgg() {
+  document.getElementById('omniEgg').classList.add('show');
+}
+function playOmniEgg() {
+  // Clone the audio each click so rapid clicks can overlap (spammable)
+  const a = new Audio(OMNI_AUDIO_SRC);
+  a.volume = 1;
+  a.play().catch(err => console.error('Omni egg audio failed:', err));
+}
+
 // ── EASTER EGG: "google" ────────────────────────────────────────────────────
 function isGoogleQuery(q) {
   const s = q.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'');
@@ -960,6 +1001,7 @@ function doSearch(fromResults=false) {
   currentQuery = q;
   saveToHistory(q);
   if (isArabUnityQuery(q)) triggerArabEgg();
+  if (isOmniQuery(q)) triggerOmniEgg();
   document.getElementById('homePage').style.display    = 'none';
   document.getElementById('resultsPage').style.display = 'block';
   document.getElementById('resultsInput').value = q;
