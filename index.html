@@ -522,6 +522,29 @@
     }
     #eggModal.open { display: flex; animation: fadeUp 0.15s ease both; }
 
+    /* ── ARAB UNITY EASTER EGG ── */
+    #arabEgg {
+      display: none; position: fixed; inset: 0; z-index: 900;
+      background: rgba(0,0,0,.45);
+      align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 1.2s ease;
+      pointer-events: none;
+      cursor: pointer;
+    }
+    #arabEgg.show { display: flex; opacity: 1; pointer-events: auto; }
+    #arabEgg.fading { opacity: 0; }
+    #arabEgg img {
+      max-width: 82vw; max-height: 82vh;
+      object-fit: contain;
+      border-radius: 6px;
+      box-shadow: 0 8px 50px rgba(0,0,0,.7);
+      animation: arabEggPulse 2.4s ease-in-out infinite;
+    }
+    @keyframes arabEggPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.015); }
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 760px) {
       .results-layout { grid-template-columns: 1fr; padding: 20px 16px; gap: 0; }
@@ -648,6 +671,17 @@
     © 2026 Synax Search | AI-Powered Search Engine
   </footer>
 
+</div>
+
+<!-- ARAB UNITY EASTER EGG -->
+<div id="arabEgg" onclick="dismissArabEgg()">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+    <img src="https://www.nicepng.com/png/full/288-2889964_flag-map-of-the-arabic-language-arab-world.png" alt="Unification of the Arab World"/>
+    <span style="font-family:var(--serif);font-size:13px;color:rgba(255,255,255,.75);letter-spacing:0.3px;">
+      Click anywhere on the screen to dismiss
+    </span>
+  </div>
+  <audio id="arabEggAudio" src="https://nexucore.github.io/Synax/assets/secret1.wav" preload="auto"></audio>
 </div>
 
 <!-- LIGHTBOX -->
@@ -859,6 +893,41 @@ function looksLikeUrl(str) {
   // domain.tld or domain.tld/path — must have a dot, no spaces, valid TLD-ish suffix
   return /^[^\s]+\.[a-z]{2,}(\/.*)?$/i.test(str) && !str.includes(' ');
 }
+// ── EASTER EGG: "uniting arabs" ─────────────────────────────────────────────
+function isArabUnityQuery(q) {
+  const s = q.trim().toLowerCase();
+  const hasArab = /\barab(s|ic)?\b/.test(s);
+  const hasUnity = /\bunit(e|ing|y|ed)?\b|\bunif(y|ication|ied)\b/.test(s);
+  return hasArab && hasUnity;
+}
+function triggerArabEgg() {
+  const egg = document.getElementById('arabEgg');
+  const audio = document.getElementById('arabEggAudio');
+  egg.classList.remove('fading');
+  egg.classList.add('show');
+  if (audio.src) {
+    audio.currentTime = 0;
+    audio.volume = 1;
+    audio.play().catch(err => console.error('Arab egg audio failed:', err));
+  }
+}
+function dismissArabEgg() {
+  const egg = document.getElementById('arabEgg');
+  const audio = document.getElementById('arabEggAudio');
+  if (!egg.classList.contains('show') || egg.classList.contains('fading')) return;
+  egg.classList.add('fading');
+  if (audio.src) {
+    const fadeStep = setInterval(() => {
+      if (audio.volume > 0.05) audio.volume -= 0.05;
+      else { audio.pause(); clearInterval(fadeStep); }
+    }, 60);
+  }
+  setTimeout(() => {
+    egg.classList.remove('show', 'fading');
+    if (audio.src) { audio.currentTime = 0; audio.volume = 1; }
+  }, 1200); // matches the 1.2s CSS fade
+}
+
 // ── EASTER EGG: "google" ────────────────────────────────────────────────────
 function isGoogleQuery(q) {
   const s = q.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'');
@@ -890,6 +959,7 @@ function doSearch(fromResults=false) {
   closeAC(document.getElementById('resultsAC'));
   currentQuery = q;
   saveToHistory(q);
+  if (isArabUnityQuery(q)) triggerArabEgg();
   document.getElementById('homePage').style.display    = 'none';
   document.getElementById('resultsPage').style.display = 'block';
   document.getElementById('resultsInput').value = q;
