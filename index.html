@@ -1000,6 +1000,13 @@ function doSearch(fromResults=false) {
   closeAC(document.getElementById('resultsAC'));
   currentQuery = q;
   saveToHistory(q);
+  // Reset both eggs first so a new unrelated search clears any lingering egg
+  document.getElementById('omniEgg').classList.remove('show');
+  const _arabEggEl = document.getElementById('arabEgg');
+  _arabEggEl.classList.remove('show', 'fading');
+  const _arabEggAudio = document.getElementById('arabEggAudio');
+  if (_arabEggAudio.src) { _arabEggAudio.pause(); _arabEggAudio.currentTime = 0; _arabEggAudio.volume = 1; }
+
   if (isArabUnityQuery(q)) triggerArabEgg();
   if (isOmniQuery(q)) triggerOmniEgg();
   document.getElementById('homePage').style.display    = 'none';
