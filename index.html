@@ -514,6 +514,14 @@
     }
     .fav-modal-save:hover { opacity: 0.85; }
 
+    /* ── EASTER EGG MODAL ── */
+    #eggModal {
+      display: none; position: fixed; inset: 0; z-index: 600;
+      background: rgba(0,0,0,.6);
+      align-items: center; justify-content: center;
+    }
+    #eggModal.open { display: flex; animation: fadeUp 0.15s ease both; }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 760px) {
       .results-layout { grid-template-columns: 1fr; padding: 20px 16px; gap: 0; }
@@ -578,6 +586,24 @@
     <div class="fav-modal-actions">
       <button class="fav-modal-cancel" onclick="closeFavModal()">Cancel</button>
       <button class="fav-modal-save" onclick="saveFavorite()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- EASTER EGG MODAL -->
+<div id="eggModal" onclick="closeEggModal(event)">
+  <div class="fav-modal-box" onclick="event.stopPropagation()">
+    <h3>Are you SURE?</h3>
+    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">
+      Are you like deadass SURE you wanna go to that pesky search engine?
+      
+    </p>
+    <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:18px;">
+      (invincible reference... are you sure.. heh.)
+    </p>
+    <div class="fav-modal-actions">
+      <button class="fav-modal-cancel" onclick="closeEggModal()">Stay on Synax</button>
+      <button class="fav-modal-save" onclick="confirmEggGoogle()">Take me to Google</button>
     </div>
   </div>
 </div>
@@ -833,6 +859,22 @@ function looksLikeUrl(str) {
   // domain.tld or domain.tld/path — must have a dot, no spaces, valid TLD-ish suffix
   return /^[^\s]+\.[a-z]{2,}(\/.*)?$/i.test(str) && !str.includes(' ');
 }
+// ── EASTER EGG: "google" ────────────────────────────────────────────────────
+function isGoogleQuery(q) {
+  const s = q.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/^www\./,'');
+  return ['google', 'google.com', 'go to google', 'goto google'].includes(s);
+}
+function openEggModal() {
+  document.getElementById('eggModal').classList.add('open');
+}
+function closeEggModal(e) {
+  if (e && e.currentTarget !== e.target) return;
+  document.getElementById('eggModal').classList.remove('open');
+}
+function confirmEggGoogle() {
+  window.location.href = 'https://www.google.com';
+}
+
 function doSearch(fromResults=false) {
   const q = fromResults
     ? document.getElementById('resultsInput').value.trim()
@@ -1037,7 +1079,19 @@ async function renderWithData(aiData, metasCacheEntry, sidebar) {
   const main = document.getElementById('resultsMain');
   const { metas, elapsed } = metasCacheEntry;
 
-  let html = `<p class="results-meta">About 10 snacks and 20 snaps (${elapsed} seconds)</p>`;
+  let html = '';
+  if (isGoogleQuery(currentQuery)) {
+    html += `
+    <div style="display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:20px;">
+      <img src="https://www.google.com/s2/favicons?domain=google.com&sz=32" alt="Google" style="width:24px;height:24px;flex-shrink:0;" onerror="this.style.display='none'"/>
+      <div style="flex:1;">
+        <div style="font-size:14px;color:var(--fg);font-weight:500;">Woah woah. Hold on there.</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-top:2px;">Are you like REALLY REALLY SURE? You wanna leave this BEAUTIFUL Search engine?</div>
+      </div>
+      <button class="favorites-add-btn" onclick="openEggModal()">Just take me to Google</button>
+    </div>`;
+  }
+  html += `<p class="results-meta">About 10 snacks and 20 snaps (${elapsed} seconds)</p>`;
 
   if (currentTab === 'all') {
     html += `
@@ -1376,6 +1430,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeLightbox();
     document.getElementById('favModal').classList.remove('open');
+    document.getElementById('eggModal').classList.remove('open');
   }
 });
 document.getElementById('favUrlInput')?.addEventListener('keydown', e => {
